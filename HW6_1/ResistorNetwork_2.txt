@@ -1,0 +1,34 @@
+# ResistorNetwork_2.txt
+# This file defines the resistor network for the second circuit.
+
+# Resistors
+Resistor
+    Name = ad
+    Resistance = 2.0
+Resistor
+    Name = bc
+    Resistance = 2.0
+Resistor
+    Name = cd
+    Resistance = 1.0
+Resistor
+    Name = ce
+    Resistance = 50.0  # 50 Ω resistor in parallel with the 32V source
+
+# Voltage Sources
+Source
+    Name = ab
+    Value = 16.0
+    Type = V
+Source
+    Name = de
+    Value = 32.0
+    Type = V
+
+# Loops
+Loop
+    Name = Loop1
+    Nodes = a,b,c,d,a
+Loop
+    Name = Loop2
+    Nodes = c,d,e,c
