@@ -31,47 +31,34 @@ class PipeNetwork():
         given the constraints of: i) no net flow into a node and ii) no net pressure drops in the loops.
         :return: a list of flow rates in the pipes
         '''
-        # See how many nodes and loops there are, this is how many equation results I will return
-        N = len(self.nodes) + len(self.loops)
         # Build an initial guess for flow rates in the pipes.
-        Q0 = np.zeros(len(self.pipes))  # Shape: (10,)
+        Q0 = np.zeros(len(self.pipes))
         Q0[0] = 30  # Initial guess for pipe a-b
         Q0[1] = 30  # Initial guess for pipe a-c
 
-        def findFlowRates(self):
-            '''
-            A method to analyze the pipe network and find the flow rates in each pipe
-            given the constraints of: i) no net flow into a node and ii) no net pressure drops in the loops.
-            :return: a list of flow rates in the pipes
-            '''
-            # Build an initial guess for flow rates in the pipes.
-            Q0 = np.zeros(len(self.pipes))
-            Q0[0] = 30  # Initial guess for pipe a-b
-            Q0[1] = 30  # Initial guess for pipe a-c
+        def fn(q):
+            """
+            This is used as a callback for fsolve. The mass continuity equations at the nodes and the loop equations
+            are functions of the flow rates in the pipes. Hence, fsolve will search for the roots of these equations
+            by varying the flow rates in each pipe.
+            :param q: an array of flowrates in the pipes
+            :return: L an array containing flow rates at the nodes (excluding the last one) and pressure losses for the loops
+            """
+            # Update the flow rate in each pipe object
+            for i in range(len(self.pipes)):
+                self.pipes[i].Q = q[i]
 
-            def fn(q):
-                """
-                This is used as a callback for fsolve. The mass continuity equations at the nodes and the loop equations
-                are functions of the flow rates in the pipes. Hence, fsolve will search for the roots of these equations
-                by varying the flow rates in each pipe.
-                :param q: an array of flowrates in the pipes
-                :return: L an array containing flow rates at the nodes (excluding the last one) and pressure losses for the loops
-                """
-                # Update the flow rate in each pipe object
-                for i in range(len(self.pipes)):
-                    self.pipes[i].Q = q[i]
+            # Calculate the net flow rate for the node objects (excluding the last node)
+            qNet = [n.getNetFlowRate() for n in self.nodes[:-1]]  # Exclude the last node
 
-                # Calculate the net flow rate for the node objects (excluding the last node)
-                qNet = [n.getNetFlowRate() for n in self.nodes[:-1]]  # Exclude the last node
+            # Calculate the net head loss for the loop objects
+            lhl = self.getLoopHeadLosses()
 
-                # Calculate the net head loss for the loop objects
-                lhl = self.getLoopHeadLosses()
+            return qNet + lhl  # Combine node flows (excluding the last node) and loop head losses
 
-                return qNet + lhl  # Combine node flows (excluding the last node) and loop head losses
-
-            # Using fsolve to find the flow rates
-            FR = fsolve(fn, Q0)
-            return FR
+        # Using fsolve to find the flow rates
+        FR = fsolve(fn, Q0)
+        return FR
 
     def getNodeFlowRates(self):
         # each node object is responsible for calculating its own net flow rate

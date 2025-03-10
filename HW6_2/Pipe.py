@@ -1,15 +1,15 @@
-#region imports
+# region imports
 import math
 import numpy as np
 import random as rnd
 from scipy.optimize import fsolve
 from Fluid import Fluid
-#endregion
+# endregion
 
 # region class definitions
 class Pipe():
-    #region constructor
-    def __init__(self, Start='A', End='B', L=100, D=200, r=0.00025, fluid=Fluid()):
+    # region constructor
+    def __init__(self, Start='A', End='B', L=100, D=200, r=0.00025, fluid=None):
         '''
         Defines a generic pipe with orientation from lowest letter to highest, alphabetically.
         :param Start: the start node (string)
@@ -19,13 +19,13 @@ class Pipe():
         :param r: the pipe roughness in m  (float)
         :param fluid:  a Fluid object (typically water)
         '''
-        #region attributes
+        # region attributes
         # from arguments given in constructor
         self.startNode = min(Start, End)  # makes sure to use the lowest letter for startNode
         self.endNode = max(Start, End)  # makes sure to use the highest letter for the endNode
         self.length = L
         self.r = r
-        self.fluid = fluid  # the fluid in the pipe
+        self.fluid = fluid if fluid is not None else Fluid()  # Avoid mutable default argument
 
         # other calculated properties
         self.d = D / 1000.0  # diameter in m
@@ -34,16 +34,16 @@ class Pipe():
         self.Q = 10  # working in units of L/s, just an initial guess
         self.vel = self.V()  # calculate the initial velocity of the fluid
         self.reynolds = self.Re()  # calculate the initial reynolds number
-        #endregion
-    #endregion
+        # endregion
+    # endregion
 
-    #region methods
+    # region methods
     def V(self):
         '''
         Calculate average velocity in the pipe for volumetric flow self.Q
         :return: the average velocity in m/s
         '''
-        self.vel = (self.Q / 1000) / self.A  # JES MISSING CODE: Convert Q from L/s to m^3/s and calculate V = Q/A
+        self.vel = (self.Q / 1000) / self.A  # Convert Q from L/s to m^3/s and calculate V = Q/A
         return self.vel
 
     def Re(self):
@@ -51,7 +51,7 @@ class Pipe():
         Calculate the reynolds number under current conditions.
         :return:
         '''
-        self.reynolds = (self.fluid.rho * self.vel * self.d) / self.fluid.mu  # JES MISSING CODE: Re = rho * V * d / mu
+        self.reynolds = (self.fluid.rho * self.vel * self.d) / self.fluid.mu  # Re = rho * V * d / mu
         return self.reynolds
 
     def FrictionFactor(self):
@@ -95,7 +95,7 @@ class Pipe():
         '''
         g = 9.81  # m/s^2
         ff = self.FrictionFactor()
-        hl = ff * (self.length / self.d) * (self.vel**2 / (2 * g))  # JES MISSING CODE: Darcy-Weisbach equation
+        hl = ff * (self.length / self.d) * (self.vel**2 / (2 * g))  # Darcy-Weisbach equation
         return hl
 
     def getFlowHeadLoss(self, s):
@@ -133,5 +133,5 @@ class Pipe():
         if n == self.startNode:
             return -self.Q
         return self.Q
-    #endregion
-#endregion
+    # endregion
+# endregion
